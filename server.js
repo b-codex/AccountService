@@ -8,6 +8,9 @@ const bodyParser = require("body-parser");
 // Load Mongoose
 const mongoose = require("mongoose");
 
+// port
+const port = process.env.PORT || 5655
+
 const passport = require("passport");
 // dotenv
 
@@ -59,6 +62,6 @@ app.use(
   userProfessionRoute
 );
 
-app.listen(5655, () => {
-  console.log("Account Service is up and running!");
+app.listen(port, () => {
+  console.log("Account Service is up and running on port " + port);
 });

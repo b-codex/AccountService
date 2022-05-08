@@ -13,9 +13,14 @@ if (process.env.ACCESS_TOKENS_SECRET) {
 if (process.env.REFRESH_TOKENS_SECRET) {
   REFRESH_TOKENS = process.env.REFRESH_TOKENS_SECRET;
 }
+CLIENT_URL = "http://localhost:3000";
+if (process.env.CLIENT_URL) {
+  CLIENT_URL = process.env.CLIENT_URL;
+}
 
 module.exports = {
   DB_URI,
   SECRET,
   REFRESH_TOKENS,
+  CLIENT_URL,
 };

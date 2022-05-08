@@ -9,11 +9,34 @@ const {
   serialize_user,
   role_auth,
   update_user,
+  check_for_banned_user,
   change_password,
 } = require("../controllers/auth");
 /* Importing the roles from the roles.js file. */
 const roles = require("../controllers/roles");
 
+/* This is a route that is used to get the profile of the user. */
+
+router.get(
+  "/profile",
+  user_auth,
+  role_auth([roles.EMPLOYEE, roles.EMPLOYER]),
+  async (req, res) => {
+    return res.json(
+      await User.findOne({ _id: req.user._id }).select(["-password"])
+    );
+  }
+);
+
+/* This is a route that is used to get the profile of the user. */
+router.get(
+  "/current",
+  user_auth,
+  role_auth([roles.EMPLOYEE, roles.EMPLOYER]),
+  (req, res, next) => {
+    return res.json(serialize_user(req.user));
+  }
+);
 /* A route that is used to register a user Employer. */
 router.post("/register-userCompany", async (req, res) => {
   return await user_register(req.body, roles.EMPLOYER, res);
@@ -23,8 +46,9 @@ router.post("/register-userCompany", async (req, res) => {
 router.post("/register-userEmployee", async (req, res) => {
   return await user_register(req.body, roles.EMPLOYEE, res);
 });
-/* This is a route that is used to login a user. */
-router.post("/login", async (req, res) => {
+
+/* This is a route that is used to login the user. */
+router.post("/login", check_for_banned_user(User), async (req, res) => {
   return await user_login(req.body, res);
 });
 
@@ -46,22 +70,6 @@ router.get("/", user_auth, role_auth([roles.ADMIN]), async (req, res) => {
 // });
 
 /* This is a route that is used to get the profile of the user. */
-
-router.get(
-  "/profile",
-  user_auth,
-  role_auth([roles.EMPLOYER, roles.EMPLOYEE]),
-  async (req, res) => {
-    return res.json(
-      await User.findOne({ _id: req.user._id }).select(["-password"])
-    );
-  }
-);
-
-/* This is a route that is used to get the profile of the user. */
-router.get("/current", user_auth, (req, res, next) => {
-  return res.json(serialize_user(req.user));
-});
 
 /* This is a route that is used to update the user. */
 router.put(

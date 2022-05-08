@@ -38,10 +38,12 @@ mongoose
   .catch((err) => console.log(err));
 
 require("./src/middleWares/passport")(passport);
+// require("./src/middleWares/userTypeAuth")(passport);
+// require("./src/middleWares/userTypeAuth")(passport);
 // setting the route for the book
 
-app.use("/api/admin", admin);
-app.use("/api/users", user);
+app.use("/microservice/accountService/admin", admin);
+app.use("/microservice/accountService/users", user);
 app.use(
   "/microservice/accountService/employee/previousEducation",
   userPreviousEducationRoute

@@ -21,6 +21,11 @@ const mongoose = require("mongoose"),
         required: [true, "Password is required"],
         minlength: 8,
       },
+      _isUserActive: {
+        type: Boolean,
+        default: true,
+      },
+      // field for employer
       description: {
         type: String,
         required: [false, "Description is required"],

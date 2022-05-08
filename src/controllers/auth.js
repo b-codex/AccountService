@@ -74,6 +74,7 @@ const user_login = async (user_creds, res) => {
   const user = await User.findOne({
     $or: [{ fullName: fullName }, { email: email }],
   });
+
   if (!user) {
     return res.status(404).json({
       message: `There is not an account with this email or username`,
@@ -81,6 +82,7 @@ const user_login = async (user_creds, res) => {
     });
   }
   let password_match = await bcrypt.compare(password, user.password);
+
   if (password_match) {
     let token = jwt.sign(
       {
@@ -88,7 +90,6 @@ const user_login = async (user_creds, res) => {
         role: user.role,
         fullName: user.fullName,
         email: user.email,
-        // password:user.password
       },
       SECRET,
       { expiresIn: "15 days" }
@@ -97,8 +98,7 @@ const user_login = async (user_creds, res) => {
       fullName: user.fullName,
       role: user.role,
       email: user.email,
-      // password:user.password,
-      token: `Bearer ${token}`,
+      token: `${token}`,
       expiryDate: moment().add(200, "hours"),
     };
     return res.status(200).json({
@@ -122,6 +122,11 @@ const validate_username = async (fullName) => {
   let user = await User.findOne({ fullName });
   return user ? false : true;
 };
+/**
+ * If a user is found with the email provided, return false, otherwise return true.
+ * @param email - The email address to validate
+ * @returns A boolean value.
+ */
 const validate_email = async (email) => {
   let user = await User.findOne({ email });
   return user ? false : true;
@@ -241,11 +246,54 @@ const role_auth = (roles) => (req, res, next) => {
   if (roles.includes(req.user.role)) {
     return next();
   }
-  return res.status(401).json({
-    message: `Unauthorized.`,
+  return res.status(403).json({
+    message: `Forbidden.`,
     success: false,
   });
 };
+/**
+ * It checks if the user is active or not. If the user is active, it returns the next() function. If
+ * the user is not active, it returns a 403 error
+ * @param user - The user object that is returned from the database.
+ * @returns a function.
+ */
+const check_for_banned_user = (user) => (req, res, next) => {
+  if (user._isUserActive === false) {
+    return res.status(403).json({
+      message: `This user is forbidden for  login in or FORBIDDEN.`,
+      success: false,
+    });
+  }
+  next();
+};
+
+// exports.forgotPassword=(req, res) =>{
+//   const {email}=req.body;
+//   const user = await User.findOne({email}, (err, user) =>{
+//       if(err || !user){
+//           return res.status (400).json({error: "User with this email does not exists."});
+//       }
+//       const token =jwt.sign({_id: user._id}, process.env.RESET_PASSWORD_KEY, {expiresIn: '20m'});
+//       const data={
+//           from: 'it.sintayehu.sermessa@gmail.com',
+//           to: email,
+//           subject: 'Account Activation Link',
+//           html:
+//              ` <h2>Please click on given link to reset Password</h2>
+//               <p>${process.env.CLIENT_URL}/authentication/activate/${token}</p>`
+//       };
+
+//   });
+//   return user.updateOne({resetPasswordToken : token}, (err, success)=>{
+//     if(err ){
+//       return res.status (400).json({error: "reset password link error"});
+//   }else{
+
+//   }
+//   })
+
+// }
+
 /**
  * It takes a user object and returns a new object with only the properties we want to expose to the
  * client
@@ -259,11 +307,13 @@ const serialize_user = (user) => {
     _id: user._id,
     fullName: user.fullName,
     email: user.email,
+    _isUserActive: user._isUserActive,
     // password: user.password,
     // frist_name: user.frist_name,
     // last_name: user.last_name,
   };
 };
+
 module.exports = {
   update_user,
   change_password,
@@ -272,4 +322,5 @@ module.exports = {
   user_auth,
   serialize_user,
   role_auth,
+  check_for_banned_user,
 };

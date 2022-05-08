@@ -1,4 +1,5 @@
-const Admin = require("../models/AdminModel/UserAdmin");
+const Admin = require("../models/AdminModel/UserAdmin"),
+  User = require("../models/userModel/UserModel");
 const bcrypt = require("bcrypt");
 // const moment = require("moment");
 const jwt = require("jsonwebtoken");
@@ -90,8 +91,8 @@ const user_login = async (admin_creds, res) => {
       name: user.name,
       role: user.role,
       email: user.email,
-      // password:user.password,
-      token: `Bearer ${token}`,
+
+      token: `${token}`,
       expiryDate: moment().add(200, "hours"),
     };
     return res.status(200).json({
@@ -130,6 +131,7 @@ const validate_email = async (email) => {
  */
 /* A middleware that checks if the user is authenticated. */
 const user_auth = passport.authenticate("jwt", { session: false });
+// console.log(user_auth);
 
 /**
  * It updates a user's profile.
@@ -234,18 +236,150 @@ const role_auth = (roles) => (req, res, next) => {
   if (roles.includes(req.user.role)) {
     return next();
   }
-  return res.status(401).json({
-    message: `Unauthorized.`,
+  return res.status(403).json({
+    message: `Forbidden.`,
     success: false,
   });
 };
+
+/**
+ * It takes in an id and a response object, and then it tries to find a user by that id, and if it
+ * finds one, it deletes it and sends a 200 response, otherwise it sends a 404 response.
+ * @param id - the id of the user to be deleted
+ * @param res - the response object
+ */
+const delete_users = async (id, res) => {
+  try {
+    let user = await User.findById(id);
+    // let user = await User.findByIdAndDelete(req.body.id);
+    if (user.id === id) {
+      await user.delete();
+      res.status(200).json("user removed successfully");
+    } else {
+      res.status(404).json("not found");
+    }
+  } catch (err) {
+    res.status(400).json("NOT FOUND");
+  }
+};
+
+/**
+ * It checks if the user is active, if so, it updates the user's status to inactive, if not, it returns
+ * a message saying the user is already banned.
+ * @param _user - the user object that is passed in the request body
+ * @param res - the response object
+ * @returns The user object is being returned.
+ */
+const banning_users = async (_user, res) => {
+  let { id } = _user;
+  try {
+    const user = await User.findById(id);
+    if (user) {
+      if (user._isUserActive === true) {
+        user._isUserActive = _user._isUserActive || user._isUserActive;
+        await user.save();
+        return res.status(200).json({
+          message: `Records updated successfully.`,
+          success: true,
+          user: user,
+        });
+      } else {
+        res.status(403).json({
+          message: "the user is Banned already",
+          success: false,
+          user: user,
+        });
+      }
+    }
+  } catch (err) {
+    res.status(400).json({
+      message: "Bad request",
+      err: err,
+    });
+  }
+};
+
+/**
+ * It takes in a user object and a response object, and then it finds the user by id, and if the user
+ * is found, it checks if the user is banned, and if the user is banned, it un-bans the user and
+ * returns a success message.
+ * @param _user - {
+ * @param res - response
+ * @returns The user object is being returned.
+ */
+const unBanning_users = async (_user, res, next) => {
+  let { id } = _user;
+  try {
+    const user = await User.findById(id);
+    if (user) {
+      if (user._isUserActive === false) {
+        user._isUserActive = _user._isUserActive || user._isUserActive;
+        await user.save();
+        return res.status(200).json({
+          message: `Records updated successfully.`,
+          success: true,
+          user: user,
+        });
+      }
+    }
+    next(
+      res.status(419).json({
+        message: `isUserActive is True`,
+        success: true,
+      })
+    );
+  } catch (err) {
+    res.status(400).json({
+      message: "Bad request",
+      err: err,
+    });
+  }
+};
+
+/**
+ * It checks if the user's verificationStatus is "Not_verified" or "pending" and if it is, it updates
+ * the user's verificationStatus to "Verified" and returns a success message.
+ * @param _user - {
+ * @param res - is the response object
+ * @returns a promise.
+ */
+const verifying_user_status = async (_user, res) => {
+  let { id } = _user;
+  try {
+    const user = await User.findById(id);
+    if (user) {
+      if (user.verificationStatus === "Not_verified" || "pending") {
+        user.verificationStatus =
+          _user.verificationStatus || user.verificationStatus;
+        await user.save();
+        return res.status(200).json({
+          message: `Records updated successfully.`,
+          success: true,
+          user: user,
+        });
+      } else if (user.verificationStatus === "verified") {
+        res.status(204).json({
+          message: "the verificationStatus is already Verified",
+          success: false,
+          user: user,
+        });
+      }
+    }
+  } catch (err) {
+    res.status(400).json({
+      message: "Bad request",
+      err: err,
+    });
+  }
+};
+
 /**
  * It takes a user object and returns a new object with only the properties that you want to expose to
  * the client.
  * @param user - The user object that is being serialized.
  * @returns The user object is being returned.
  */
-const serialize_user = (user) => {
+function serialize_user(user) {
   return {
     role: user.role,
     verified: user.verified,
@@ -253,7 +387,7 @@ const serialize_user = (user) => {
     name: user.name,
     email: user.email,
   };
-};
+}
 module.exports = {
   update_user,
   change_password,
@@ -262,4 +396,8 @@ module.exports = {
   user_auth,
   serialize_user,
   role_auth,
+  delete_users,
+  banning_users,
+  verifying_user_status,
+  unBanning_users,
 };

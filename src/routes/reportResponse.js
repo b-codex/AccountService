@@ -2,6 +2,7 @@ const router = require("express").Router();
 const ReportResponse = require("../models/Reports/reports");
 
 /* Importing the functions from the Company.js file. */
+const { addReportResponseToAdmin } = require("../controllers/admin_auth");
 const {
   user_register,
   user_login,
@@ -48,6 +49,7 @@ router.post(
         ...req.body,
         user: req.user._id,
       });
+      await addReportResponseToAdmin(req.user.id, rs.id);
       let save_rs = await rs.save();
       return res.status(201).json({
         message: "rs Created Successfully.",

@@ -11,6 +11,7 @@ const {
   update_user,
   check_for_banned_user,
   change_password,
+  get_verified,
 } = require("../controllers/auth");
 /* Importing the roles from the roles.js file. */
 const roles = require("../controllers/roles");
@@ -58,12 +59,54 @@ router.post("/login", check_for_banned_user(User), async (req, res) => {
 /* This is a route that is used to get all the users. */
 router.get("/", user_auth, role_auth([roles.ADMIN]), async (req, res) => {
   try {
-    const user = await User.find();
+    const user = await User.find().exec();
     res.status(200).json(user);
   } catch (err) {
-    res.status(500).json("no user is found", err);
+    res.status(404).json("no user is found", err);
   }
 });
+// /* Getting all the users and populating the profession. */
+// router.get(
+//   "/employee",
+//   user_auth,
+//   role_auth([roles.EMPLOYEE]),
+//   async (req, res) => {
+//     try {
+//       const user = await User.find().populate("profession").exec();
+//       const { profession } = user._doc;
+//       res.status(200).json(profession);
+//     } catch (err) {
+//       res.status(404).json("no user is found", err);
+//     }
+//   }
+// );
+/* This is a route that is used to get the profile of the user. */
+router.get("/:id", user_auth, role_auth([roles.ADMIN]), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).exec();
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(404).json("no user is found", err);
+  }
+});
+
+/* This is a route that is used to get the profile of the user. */
+router.get(
+  "/notification/:id",
+  user_auth,
+  role_auth([roles.EMPLOYEE, roles.EMPLOYER]),
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id)
+        .populate("notification")
+        .exec();
+      const { notification } = user._doc;
+      res.status(200).json(notification);
+    } catch (err) {
+      res.status(404).json("no user is found", err);
+    }
+  }
+);
 
 // router.get("/", user_auth, role_auth([roles.EMPLOYEE]), async (req, res) => {
 //   return res.json(await userProfession.find({ user: req.user._id }));
@@ -80,6 +123,7 @@ router.put(
     return await update_user(req.user._id, req.body, res);
   }
 );
+
 /* This is a route that is used to update the user. */
 router.put(
   "/update-password",

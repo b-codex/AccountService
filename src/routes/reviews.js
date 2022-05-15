@@ -10,22 +10,26 @@ const {
   role_auth,
   update_user,
   change_password,
+  addReviewsToUser,
 } = require("../controllers/auth");
 /* Importing the roles from the roles.js file. */
 const roles = require("../controllers/roles");
+const UserModel = require("../models/userModel/UserModel");
 
 // router.get("/", user_auth, role_auth([roles.EMPLOYEE]), async (req, res) => {
 //   return res.json(await userProfession.find({ user: req.user._id }));
 // });
+// what populate() function does id that it show the "ref" models of all it's items
 router.get(
   "/:id",
   user_auth,
   role_auth([roles.EMPLOYEE, roles.EMPLOYER]),
   async (req, res) => {
     try {
-      const reviews = await Reviews.findById({
+      const user = await UserModel.findById({
         _id: req.params.id,
-      });
+      }).populate("reviews");
+      const { reviews } = user._doc;
       res.status(200).json(reviews);
     } catch (err) {
       res.status(500).json(err);
@@ -41,8 +45,8 @@ router.post(
     try {
       let reviews = new Reviews({
         ...req.body,
-        user: req.user._id,
       });
+      await addReviewsToUser(req.body.user_id, reviews.id);
       let save_reviews = await reviews.save();
       return res.status(201).json({
         message: "reviews Created Successfully.",

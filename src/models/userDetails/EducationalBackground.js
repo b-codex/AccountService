@@ -22,12 +22,10 @@ const EducationalBackgroundsSchema = new mongoose.Schema(
       required: [true, "EndDate is required"],
     },
     // many to many relationship
-    userId: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   { timestamps: true }
 );

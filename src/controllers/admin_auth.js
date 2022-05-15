@@ -4,8 +4,13 @@ const bcrypt = require("bcrypt");
 // const moment = require("moment");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
+const mongoose = require("mongoose");
 const { SECRET } = require("../config");
 const moment = require("moment");
+const UserAdmin = require("../models/AdminModel/UserAdmin");
+const verifyRequest = require("../models/userDetails/verifyRequest");
+const notification = require("../models/Notification/Notification");
+// const { add_NotificationToUser } = require("../controllers/auth");
 /**
  * It takes in the user details, role, and response object, validates the email, hashes the password,
  * creates a new user object, saves the user to the database and returns a response to the user
@@ -348,18 +353,17 @@ const verifying_user_status = async (_user, res) => {
   try {
     const user = await User.findById(id);
     if (user) {
-      if (user.verificationStatus === "Not_verified" || "pending") {
-        user.verificationStatus =
-          _user.verificationStatus || user.verificationStatus;
+      if (user.verified === false) {
+        user.verified = _user.verified || user.verified;
         await user.save();
         return res.status(200).json({
           message: `Records updated successfully.`,
           success: true,
           user: user,
         });
-      } else if (user.verificationStatus === "verified") {
+      } else if (user.verified === true) {
         res.status(204).json({
-          message: "the verificationStatus is already Verified",
+          message: "the user is already Verified",
           success: false,
           user: user,
         });
@@ -373,6 +377,186 @@ const verifying_user_status = async (_user, res) => {
   }
 };
 
+/**
+ * It checks if the user is verified, if the user is verified, it changes the user's verified status to
+ * false, if the user is not verified, it returns a 204 status code.
+ * </code>
+ * @param _user - is the user object that is passed in the request body
+ * @param res - is the response object
+ * @returns a promise.
+ */
+const unVerify_user_status = async (_user, res) => {
+  let { id } = _user;
+  try {
+    const user = await User.findById(id);
+    if (user) {
+      if (user.verified === true) {
+        user.verified = _user.verified || user.verified;
+        await user.save();
+        return res.status(200).json({
+          message: `Records updated successfully.`,
+          success: true,
+          user: user,
+        });
+      } else if (user.verified === false) {
+        res.status(204).json({
+          message: "the user is already unVerified",
+          success: false,
+          user: user,
+        });
+      }
+    }
+  } catch (err) {
+    res.status(400).json({
+      message: "Bad request",
+      err: err,
+    });
+  }
+};
+
+/**
+ * Find the admin by id and update the admin's reportResponse array by pushing the reportResponse_id
+ * into it.
+ * @param admin_id - the id of the admin
+ * @param reportResponse_id - the id of the reportResponse that was just created
+ * @returns The updated admin object.
+ */
+const addReportResponseToAdmin = async (admin_id, reportResponse_id) => {
+  return await UserAdmin.findByIdAndUpdate(
+    admin_id,
+    {
+      $push: { reportResponse: reportResponse_id },
+    },
+    { new: true }
+  ).exec();
+};
+
+/**
+ * It returns a random user ID from the database.
+ * @returns The return value is a promise.
+ */
+const getID = async () => {
+  let user;
+  user = await UserAdmin.find().exec();
+  // console.log(user);
+  const single_user = user[Math.floor(Math.random() * user.length)];
+  return serialize_admin_id(single_user);
+};
+
+/**ban
+ * It takes a reports_id, gets the admin's id, and then adds the reports_id to the admin's report
+ * array.
+ * @param reports_id - the id of the report that is being added to the admin
+ * @returns The return value is the updated document.
+ */
+const addReportToAdmin = async (reports_id) => {
+  const get_id = await getID();
+  console.log(get_id);
+  return await UserAdmin.findByIdAndUpdate(
+    get_id._id,
+    {
+      $push: { report: reports_id },
+    },
+    { new: true }
+  ).exec();
+};
+
+/**
+ * This function takes an admin_id and a notificationID and adds the notificationID to the admin's
+ * notification array.
+ * @param admin_id - the id of the admin
+ * @param notificationID - the id of the notification that was just created
+ * @returns The updated admin object.
+ */
+const addNotificationToAdmin = async (admin_id, notificationID) => {
+  return await UserAdmin.findByIdAndUpdate(
+    admin_id,
+    {
+      $push: { notification: notificationID },
+    },
+    { new: true }
+  ).exec();
+};
+/**
+ * This function takes a user_id and a notificationID and adds the notificationID to the user's
+ * notification array.
+ * @param user_id - the user id of the user you want to add the notification to
+ * @param notificationID - the id of the notification that was created
+ * @returns The user object with the notification array updated.
+ */
+const add_NotificationToUser = async (user_id, notificationID) => {
+  return await User.findByIdAndUpdate(
+    user_id,
+    {
+      $push: { notification: notificationID },
+    },
+    { new: true }
+  ).exec();
+};
+
+/**
+ * It takes a user object and a response object as parameters, then it finds the user by id, if the
+ * user is found, it creates a new notification object, then it adds the notification id to the user
+ * and admin, then it saves the notification object, then it returns a response object with a message
+ * and the notification object.
+ * @param _user - {
+ * @param res - is the response object
+ * @returns a promise.
+ */
+const send_Notification_To_user = async (_user, res) => {
+  // const user = await User.findById(user_id).exec();
+  const { user, admin } = _user;
+  try {
+    const userAdmin = await Admin.findById(admin).exec();
+    if (userAdmin) {
+      const notify = new notification({
+        ..._user,
+      });
+      await addNotificationToAdmin(admin, notify.id);
+      await add_NotificationToUser(user, notify.id);
+      await notify.save();
+      return res.status(200).json({
+        message: `notify Request has been send successfully.`,
+        success: true,
+        notify: notify,
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      message: "Bad request",
+      err: err,
+    });
+  }
+};
+
+/**
+ * It takes a verifyRequestID, gets the ID of the admin, and then adds the verifyRequestID to the
+ * admin's verifyRequests array.
+ * @param verifyRequestID - is the id of the verifyRequest document
+ * @returns The return value is the updated document.
+ */
+const addVerifyRequiresToAdmin = async (verifyRequestID) => {
+  const get_id = await getID();
+  console.log(get_id);
+  return await UserAdmin.findByIdAndUpdate(
+    get_id._id,
+    {
+      $push: { verifyRequests: verifyRequestID },
+    },
+    { new: true }
+  ).exec();
+};
+
+/**
+ * It takes an admin object and returns a new object with only the _id property
+ * @param admin - The admin object to serialize.
+ * @returns The _id of the admin.
+ */
+function serialize_admin_id(admin) {
+  return {
+    _id: admin._id,
+  };
+}
 /**
  * It takes a user object and returns a new object with only the properties that you want to expose to
  * the client.
@@ -400,4 +584,11 @@ module.exports = {
   banning_users,
   verifying_user_status,
   unBanning_users,
+  addReportResponseToAdmin,
+  getID,
+  addReportToAdmin,
+  unVerify_user_status,
+  addVerifyRequiresToAdmin,
+  send_Notification_To_user,
+  add_NotificationToUser,
 };

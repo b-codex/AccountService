@@ -8,6 +8,7 @@ const {
   role_auth,
   update_user,
   change_password,
+  addReference,
 } = require("../controllers/auth");
 /* Importing the roles from the roles.js file. */
 const roles = require("../controllers/roles");
@@ -27,6 +28,7 @@ router.get("/:id", user_auth, role_auth([roles.EMPLOYEE]), async (req, res) => {
   }
 });
 
+/* This is a post request to the route /reference. */
 router.post(
   "/reference",
   user_auth,
@@ -35,8 +37,8 @@ router.post(
     try {
       let reference = new userReference({
         ...req.body,
-        user: req.user._id,
       });
+      // await addReference(req.body.previousExperience, reference.id);
       let save_reference = await reference.save();
       return res.status(201).json({
         message: "reference Created Successfully.",

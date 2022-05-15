@@ -35,6 +35,18 @@ const AdminSchema = new mongoose.Schema(
         ref: "ReportResponse",
       },
     ],
+    verifyRequests: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "VerifyRequest",
+      },
+    ],
+    notification: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Notification",
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -15,6 +15,7 @@ const {
   banning_users,
   verifying_user_status,
   unBanning_users,
+  send_Notification_To_user,
 } = require("../controllers/admin_auth");
 /* Importing the roles from the roles.js file. */
 const roles = require("../controllers/roles");
@@ -47,9 +48,18 @@ router.get(
 router.post("/register-admin", async (req, res) => {
   return await user_register(req.body, roles.ADMIN, res);
 });
+/* This is a route that is used to send a notification to the user. */
+router.post(
+  "/send-notification",
+  user_auth,
+  role_auth([roles.ADMIN]),
+  async (req, res) => {
+    return await send_Notification_To_user(req.body, res);
+  }
+);
 
 /* This is a route that is used to login a admin user. */
-router.post("/login", async (req, res) => {
+router.post("/login-admin", async (req, res) => {
   return await user_login(req.body, res);
 });
 

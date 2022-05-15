@@ -1,5 +1,6 @@
 const router = require("express").Router();
-const Report = require("../models/Reports/reports");
+const ResumeBuilder = require("../models/ResumeBuilder/resumeBuilder");
+
 /* Importing the functions from the Company.js file. */
 const {
   user_register,
@@ -9,47 +10,42 @@ const {
   role_auth,
   update_user,
   change_password,
-  addReportToUser,
+  addResumeToUser,
 } = require("../controllers/auth");
-const { addReportToAdmin, getID } = require("../controllers/admin_auth");
 /* Importing the roles from the roles.js file. */
 const roles = require("../controllers/roles");
-// const UserModel = require("../models/userModel/UserModel");
 
-// router.get(
-//   "/reports",
-//   user_auth,
-//   role_auth([roles.EMPLOYEE, roles.EMPLOYER]),
-//   async (req, res) => {
-//     return res.json(await Report.find({ report_Id: UserModel.report_Id }));
-//   }
-// );
+/* This is a route that is used to get the user's resume. */
+router.get(
+  "/resume",
+  user_auth,
+  role_auth([roles.EMPLOYEE]),
+  async (req, res) => {
+    return res.json(await ResumeBuilder.find({ user: req.user.resumeBuilder }));
+  }
+);
 
 router.post(
-  "/reports",
+  "/resumeBuilder",
   user_auth,
-  role_auth([roles.EMPLOYEE, roles.EMPLOYER]),
+  role_auth([roles.EMPLOYEE]),
   async (req, res) => {
     try {
-      let reports = new Report({
+      let resume = new ResumeBuilder({
         ...req.body,
         user: req.user._id,
-        // reporter: req.reporter._id,
       });
-      // const id = getID();
-      await addReportToAdmin(reports.id);
-      await addReportToUser(req.user.id, reports.id);
-      // await addPreviousreports(req.user.id, reports.id);
-      let save_reports = await reports.save();
+      await addResumeToUser(req.user.id, resume.id);
+      let save_resume = await resume.save();
       return res.status(201).json({
-        message: "experience Created Successfully.",
+        message: "Resume Created Successfully.",
         success: true,
-        reports: save_reports,
+        resume: save_resume,
       });
     } catch (error) {
       console.log(error);
       return res.status(500).json({
-        message: "Couldn't create the report",
+        message: "Couldn't create the resume",
         success: false,
       });
     }

@@ -5,8 +5,14 @@ const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const { SECRET } = require("../config");
 const moment = require("moment");
+const PreviousExperience = require("../models/userDetails/PreviousExperience");
+// const UserAdmin = require("../models/AdminModel/UserAdmin");
+// const { addVerifyRequiresToAdmin} = require("../controllers/admin_auth");
+const verifyRequest = require("../models/userDetails/verifyRequest");
+const { addVerifyRequiresToAdmin } = require("../controllers/admin_auth");
 /**
  * Register Users
+ *
  */
 /**
  * It creates a new user in the database
@@ -267,6 +273,183 @@ const check_for_banned_user = (user) => (req, res, next) => {
   next();
 };
 
+/**
+ * It takes a user_id and an educational_id and adds the educational_id to the user's
+ * educationalBackgrounds array.
+ * @param user_id - the id of the user
+ * @param educational_id - 5e8f8f8f8f8f8f8f8f8f8f8f
+ * @returns The updated user object.
+ */
+const addEducationalBackground = async (user_id, educational_id) => {
+  return await User.findByIdAndUpdate(
+    user_id,
+    {
+      $push: { educationalBackgrounds: educational_id },
+    },
+    { new: true }
+  ).exec();
+};
+
+/**
+ * This function takes a user_id and a PreviousExperience_id and adds the PreviousExperience_id to the
+ * user's previousExperience array.
+ * @param user_id - the id of the user
+ * @param PreviousExperience_id - 5e8f8f8f8f8f8f8f8f8f8f8f
+ * @returns The user object with the new previousExperience array.
+ */
+const addPreviousExperience = async (user_id, PreviousExperience_id) => {
+  return await User.findByIdAndUpdate(
+    user_id,
+    {
+      $push: { previousExperience: PreviousExperience_id },
+    },
+    { new: true }
+  ).exec();
+};
+/**
+ * It takes a user_id and a reviews_id and adds the reviews_id to the user's reviews array.
+ * @param user_id - the id of the user
+ * @param reviews_id - the id of the review that was just created
+ * @returns The updated user object.
+ */
+const addReviewsToUser = async (user_id, reviews_id) => {
+  return await User.findByIdAndUpdate(
+    user_id,
+    {
+      $push: { reviews: reviews_id },
+    },
+    { new: true }
+  ).exec();
+};
+/**
+ * It takes a user_id and a profession_id and adds the profession_id to the user's profession array.
+ * @param user_id - the id of the user you want to add the profession to
+ * @param profession_id - 5e8f8f8f8f8f8f8f8f8f8f8f
+ * @returns A promise that resolves to the updated user document.
+ */
+const addProfession = async (user_id, profession_id) => {
+  return await User.findByIdAndUpdate(
+    user_id,
+    {
+      $push: { profession: profession_id },
+    },
+    { new: true }
+  ).exec();
+};
+/**
+ * It takes a previousExperience_id and a referenceId and adds the referenceId to the
+ * previousExperience_id's referenceId array.
+ * @param previousExperience_id - the id of the previousExperience document
+ * @param referenceId - {
+ * @returns The updated previousExperience document.
+ */
+const addReference = async (previousExperience_id, referenceId) => {
+  return await PreviousExperience.findByIdAndUpdate(
+    previousExperience_id,
+    {
+      $push: { referenceId: referenceId },
+    },
+    { new: true }
+  ).exec();
+};
+
+/**
+ * It takes a user_id and a resume_id and adds the resume_id to the resumeBuilder array of the user
+ * with the user_id.
+ * @param user_id - the id of the user
+ * @param resume_id - the id of the resume that was just created
+ * @returns The updated user object.
+ */
+
+const addResumeToUser = async (user_id, resume_id) => {
+  return await PreviousExperience.findByIdAndUpdate(
+    user_id,
+    {
+      $push: { resumeBuilder: resume_id },
+    },
+    { new: true }
+  ).exec();
+};
+/**
+ * Find the user by their id and update the user's report_Id array by pushing the report_Id into it.
+ * @param user_id - the id of the user you want to add the report to
+ * @param report_Id - is the name of the field in the User model
+ * @returns The updated user object.
+ */
+const addReportToUser = async (reporter_id, report_Id) => {
+  return await User.findByIdAndUpdate(
+    reporter_id,
+    {
+      $push: { report_Id: report_Id },
+    },
+    { new: true }
+  ).exec();
+};
+
+/**
+ * It's a function that takes a user object and a response object as parameters and returns a response
+ * object.
+ * </code>
+ * @param _user - {
+ * @param res - response
+ * @returns {
+ *     "message": "verify Request has been send successfully.",
+ *     "success": true,
+ *     "verify": {
+ *         "id": "5f0f8f8f8f8f8f8f8f8f8f8f",
+ *         "user": {
+ *             "id": "5f0f8f
+ */
+const get_verified = async (_user, res) => {
+  let { user } = _user;
+  // const get_id = await getID();
+  // console.log(get_id);
+  try {
+    const customer = await User.findById(user).exec();
+    if (customer) {
+      if (customer.verified === false) {
+        const verify = new verifyRequest({
+          ..._user,
+        });
+        await addVerifyRequiresToAdmin(verify.id);
+        await verify.save();
+        return res.status(200).json({
+          message: `verify Request has been send successfully.`,
+          success: true,
+          verify: verify,
+        });
+      } else if (user.verified === true) {
+        res.status(204).json({
+          message: "Can not send this message because it verified already",
+          success: false,
+          user: user,
+        });
+      }
+    }
+  } catch (err) {
+    res.status(400).json({
+      message: "Bad request",
+      err: err,
+    });
+  }
+};
+
+/**
+ * It takes a user_id and a report_id and adds the report_id to the user's report array.
+ * @param user_id - the id of the user that is the admin
+ * @param report_id - the id of the report that was just created
+ * @returns The updated user object.
+ */
+// const addReportToAdmin = (user_id, report_id) => {
+//   return UserAdmin.findByIdAndUpdate(
+//     user_id,
+//     {
+//       $push: { report: report_id },
+//     },
+//     { new: true }
+//   );
+// };
+
 // exports.forgotPassword=(req, res) =>{
 //   const {email}=req.body;
 //   const user = await User.findOne({email}, (err, user) =>{
@@ -308,9 +491,6 @@ const serialize_user = (user) => {
     fullName: user.fullName,
     email: user.email,
     _isUserActive: user._isUserActive,
-    // password: user.password,
-    // frist_name: user.frist_name,
-    // last_name: user.last_name,
   };
 };
 
@@ -323,4 +503,12 @@ module.exports = {
   serialize_user,
   role_auth,
   check_for_banned_user,
+  addEducationalBackground,
+  addPreviousExperience,
+  addProfession,
+  addReference,
+  addResumeToUser,
+  addReportToUser,
+  get_verified,
+  addReviewsToUser,
 };

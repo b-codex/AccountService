@@ -140,7 +140,7 @@ router.put(
 );
 
 /* Deleting the user. */
-router.delete("/:id", user_auth, async (req, res, next) => {
+router.delete("/user", user_auth, async (req, res, next) => {
   try {
     let x = await User.deleteOne({ _id: req.user._id });
     console.log(x);

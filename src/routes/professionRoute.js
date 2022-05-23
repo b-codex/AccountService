@@ -8,6 +8,7 @@ const {
   role_auth,
   update_user,
   change_password,
+  addProfession,
 } = require("../controllers/auth");
 /* Importing the roles from the roles.js file. */
 const roles = require("../controllers/roles");
@@ -36,8 +37,8 @@ router.post(
     try {
       let profession = new userProfession({
         ...req.body,
-        user: req.user._id,
       });
+      await addProfession(req.body.userId, profession.id);
       let save_profession = await profession.save();
       return res.status(201).json({
         message: "profession Created Successfully.",

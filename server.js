@@ -26,6 +26,7 @@ const user = require("./src/routes/users");
 const admin = require("./src/routes/admin");
 const reviews = require("./src/routes/reviews");
 const report = require("./src/routes/reports");
+const verifyRequest = require("./src/routes/verifyRequest");
 const reportResponse = require("./src/routes/reportResponse");
 
 // MiddleWares
@@ -41,15 +42,18 @@ mongoose
   .catch((err) => console.log(err));
 
 require("./src/middleWares/passport")(passport);
+// require("./src/middleWares/userTypeAuth")(passport);
+// require("./src/middleWares/userTypeAuth")(passport);
 // setting the route for the book
 
-app.use("/api/admin", admin);
-app.use("/api/users", user);
+app.use("/microservice/accountService/admin", admin);
+app.use("/microservice/accountService/users", user);
 app.use(
-  "/microservice/accountService/employee/previousEducation",
+  "/microservice/accountService/employee/previousExperience",
   userPreviousEducationRoute
 );
-app.use("/microservice/accountService/employee/reviews", reviews);
+app.use("/microservice/accountService/users/reviews", reviews);
+app.use("/microservice/accountService/users/verifyRequest", verifyRequest);
 app.use("/microservice/accountService/employee/reports", report);
 app.use("/microservice/accountService/employee/response", reportResponse);
 app.use(

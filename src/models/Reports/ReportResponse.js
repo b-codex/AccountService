@@ -9,11 +9,11 @@ const mongoose = require("mongoose"),
       type: String,
       required: false,
     },
-    reportID: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "UserReport",
-      },
-    ],
+    // reportID: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "UserReport",
+    //   },
+    // ],
   });
 module.exports = mongoose.model("ReportResponse", ReportResponseSchema);

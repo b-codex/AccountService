@@ -8,6 +8,7 @@ const {
   role_auth,
   update_user,
   change_password,
+  addEducationalBackground,
 } = require("../controllers/auth");
 /* Importing the roles from the roles.js file. */
 const roles = require("../controllers/roles");
@@ -38,6 +39,7 @@ router.post(
         ...req.body,
         user: req.user._id,
       });
+      await addEducationalBackground(req.user.id, educationalBackground.id);
       let save_educationalBackground = await educationalBackground.save();
       return res.status(201).json({
         message: "educationalBackground Created Successfully.",

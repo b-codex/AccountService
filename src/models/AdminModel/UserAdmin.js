@@ -3,11 +3,16 @@ const AdminSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Name is required"],
+      required: ["Name is required"],
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: ["Email is required"],
+    },
+    password: {
+      type: String,
+      required: ["Password is required"],
+      minlength: 8,
     },
     profilePicture: {
       type: String,
@@ -15,8 +20,8 @@ const AdminSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["Admin"],
-      default: "Admin",
+      enum: ["admin"],
+      default: "admin",
     },
     report: [
       {
@@ -28,6 +33,18 @@ const AdminSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "ReportResponse",
+      },
+    ],
+    verifyRequests: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "VerifyRequest",
+      },
+    ],
+    notification: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Notification",
       },
     ],
   },

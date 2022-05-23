@@ -21,6 +21,11 @@ const mongoose = require("mongoose"),
         required: [true, "Password is required"],
         minlength: 8,
       },
+      _isUserActive: {
+        type: Boolean,
+        default: true,
+      },
+      // field for employer
       description: {
         type: String,
         required: [false, "Description is required"],
@@ -49,11 +54,9 @@ const mongoose = require("mongoose"),
           ref: "UserReview",
         },
       ],
-      verificationStatus: {
-        type: String,
-        // required: t,
-        enum: ["Not_verified", "verified", "pending"],
-        default: "Not_verified",
+      verified: {
+        type: Boolean,
+        default: false,
       },
       profilePicture: {
         type: String,
@@ -98,6 +101,22 @@ const mongoose = require("mongoose"),
           ref: "ResumeBuilder",
         },
       ],
+      report_Id: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "UserReport",
+        },
+      ],
+      notification: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Notification",
+        },
+      ],
+      referenceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "References",
+      },
     },
     { timestamps: true }
   );

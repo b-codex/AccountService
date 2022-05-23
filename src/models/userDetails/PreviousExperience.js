@@ -21,12 +21,10 @@ const PreviousExperienceSchema = new mongoose.Schema(
       type: Boolean,
       required: [true, "CurrentActivity is required"],
     },
-    referenceId: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "References",
-      },
-    ],
+    referenceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "References",
+    },
   },
   { timestamps: true }
 );

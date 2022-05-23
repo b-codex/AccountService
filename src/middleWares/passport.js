@@ -10,27 +10,32 @@ const options = {
   secretOrKey: SECRET,
 };
 
+/**
+ * It checks if the user is in the User collection or the UserAdmin collection and returns the user if
+ * found.
+ * @param id - the id of the user
+ * @returns The user object is being returned.
+ */
+async function Check_users(id) {
+  let user;
+  user = await User.findById(id);
+  if (user) {
+    // user = user.toObject();
+    // user.userType = "USER";
+    return user;
+  }
+  user = await UserAdmin.findById(id);
+  if (user) {
+    // user = user.toObject();
+    // user.userType = "ADMIN";
+    return user;
+  }
+  return null;
+}
 module.exports = (passport) => {
   passport.use(
     new Strategy(options, async (payload, done) => {
-      await User.findById(payload.user_id)
-        .then(async (user) => {
-          if (user) {
-            return done(null, user);
-          }
-          return done(null, false);
-        })
-        .catch((err) => {
-          console.log(err);
-          done(null, false);
-        });
-    })
-  );
-};
-module.exports = (passport) => {
-  passport.use(
-    new Strategy(options, async (payload, done) => {
-      await UserAdmin.findById(payload.user_id)
+      await Check_users(payload.user_id)
         .then(async (user) => {
           if (user) {
             return done(null, user);

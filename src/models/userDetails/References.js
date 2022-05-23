@@ -14,15 +14,13 @@ const ReferencesSchema = new mongoose.Schema(
       required: [true, "Email is required"],
     },
     phoneNumber: {
-      type: Date,
+      type: String,
       required: [true, "PhoneNumber is required"],
     },
-    previousExperience: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "PreviousExperience",
-      },
-    ],
+    previousExperience: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PreviousExperience",
+    },
   },
   { timestamps: true }
 );

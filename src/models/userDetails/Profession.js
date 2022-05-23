@@ -11,12 +11,10 @@ const ProfessionSchema = new mongoose.Schema(
       default: [],
       required: [false, "Tag is required"],
     },
-    userId: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "UserProfessional",
-      },
-    ],
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UserProfessional",
+    },
   },
   { timestamps: true }
 );

@@ -8,6 +8,7 @@ const {
   role_auth,
   update_user,
   change_password,
+  addPreviousExperience,
 } = require("../controllers/auth");
 /* Importing the roles from the roles.js file. */
 const roles = require("../controllers/roles");
@@ -37,6 +38,7 @@ router.post(
         ...req.body,
         user: req.user._id,
       });
+      await addPreviousExperience(req.user.id, experience.id);
       let save_experience = await experience.save();
       return res.status(201).json({
         message: "experience Created Successfully.",

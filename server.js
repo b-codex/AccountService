@@ -38,7 +38,7 @@ app.use(bodyParser.json());
 
 mongoose
   .connect(DB_URI)
-  .then(console.log(" Database is up and running"))
+  .then(console.log("Database is up and running"))
   .catch((err) => console.log(err));
 
 require("./src/middleWares/passport")(passport);
@@ -67,5 +67,6 @@ app.use(
 );
 
 app.listen(port, () => {
+  
   console.log("Account Service is up and running on port " + port);
 });

@@ -101,6 +101,7 @@ const user_login = async (user_creds, res) => {
       { expiresIn: "15 days" }
     );
     let result = {
+      id: user._id,
       fullName: user.fullName,
       role: user.role,
       email: user.email,

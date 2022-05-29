@@ -67,6 +67,5 @@ app.use(
 );
 
 app.listen(port, () => {
-  
   console.log("Account Service is up and running on port " + port);
 });

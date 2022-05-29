@@ -24,7 +24,12 @@ router.get(
   role_auth([roles.EMPLOYEE, roles.EMPLOYER]),
   async (req, res) => {
     return res.json(
-      await User.findOne({ _id: req.user._id }).select(["-password"])
+      await User.findOne({
+        _id: req.user._id
+      })
+      .populate("previousExperience")
+      .select(["-password"])
+      .exec()
     );
   }
 );
@@ -100,7 +105,9 @@ router.get(
       const user = await User.findById(req.params.id)
         .populate("notification")
         .exec();
-      const { notification } = user._doc;
+      const {
+        notification
+      } = user._doc;
       res.status(200).json(notification);
     } catch (err) {
       res.status(404).json("no user is found", err);
@@ -142,7 +149,9 @@ router.put(
 /* Deleting the user. */
 router.delete("/user", user_auth, async (req, res, next) => {
   try {
-    let x = await User.deleteOne({ _id: req.user._id });
+    let x = await User.deleteOne({
+      _id: req.user._id
+    });
     console.log(x);
     return res.status(200).json({
       message: "Deleted successfully.",

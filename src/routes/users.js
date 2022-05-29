@@ -28,6 +28,7 @@ router.get(
         _id: req.user._id
       })
       .populate("previousExperience")
+      .populate("educationalBackgrounds")
       .select(["-password"])
       .exec()
     );
